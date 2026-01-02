@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fetchGames = async () => {
         // This is the new, simplified API endpoint from ESPN. No key required.
-        const apiUrl = 'http://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard';
+        const proxyUrl = 'https://corsproxy.io/?';
+        const apiUrl = `${proxyUrl}http://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard`;
 
         try {
             const response = await fetch(apiUrl);
