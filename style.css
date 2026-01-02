@@ -1,0 +1,129 @@
+:root {
+    --background-color: #121212;
+    --card-background: #1e1e1e;
+    --text-color: #e0e0e0;
+    --header-color: #ffffff;
+    --accent-color: #00aaff;
+    --favored-team-color: #ffd700; /* Gold */
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    color: var(--header-color);
+    font-size: 2.5rem;
+}
+
+#game-container {
+    width: 100%;
+    max-width: 800px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.loading {
+    text-align: center;
+    font-size: 1.2rem;
+    padding: 40px;
+}
+
+.game-card {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.game-time {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-color);
+    text-align: center;
+}
+
+.teams {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    text-align: center;
+}
+
+.team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.team-logo {
+    width: 60px;
+    height: 60px;
+}
+
+.team-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.record {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.favored {
+    color: var(--favored-team-color);
+    font-weight: bold;
+}
+
+.analysis, .broadcast-info {
+    text-align: center;
+    font-size: 1rem;
+    padding-top: 10px;
+    border-top: 1px solid #333;
+}
+
+footer {
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+}
+
+footer p {
+    margin: 0 0 10px 0;
+}
+
+.coffee-button img {
+    height: 40px;
+    width: auto;
+}
