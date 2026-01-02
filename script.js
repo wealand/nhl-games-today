@@ -1,104 +1,81 @@
 document.addEventListener('DOMContentLoaded', () => {
     const gameContainer = document.getElementById('game-container');
-    const today = new Date().toISOString().split('T')[0];
-    
-    const proxyUrl = 'https://corsproxy.io/?';
-    const scheduleUrl = `${proxyUrl}https://api-web.nhle.com/v1/schedule/${today}`;
-    const standingsUrl = `${proxyUrl}https://api-web.nhle.com/v1/standings/now`;
 
-    const fetchData = async () => {
+    const fetchGames = async () => {
+        // This is the new, simplified API endpoint from ESPN. No key required.
+        const apiUrl = 'http://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard';
+
         try {
-            const [scheduleResponse, standingsResponse] = await Promise.all([
-                fetch(scheduleUrl),
-                fetch(standingsUrl)
-            ]);
-
-            if (!scheduleResponse.ok) {
-                throw new Error(`HTTP error! Schedule status: ${scheduleResponse.status}`);
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            if (!standingsResponse.ok) {
-                throw new Error(`HTTP error! Standings status: ${standingsResponse.status}`);
-            }
-
-            const scheduleData = await scheduleResponse.json();
-            const standingsData = await standingsResponse.json();
-            
-            const standingsMap = new Map(standingsData.standings.map(team => [team.teamAbbrev.default, team]));
-            
-            const games = scheduleData.gameWeek[0]?.games || [];
-            
-            renderGames(games, standingsMap);
+            const data = await response.json();
+            renderGames(data.events);
 
         } catch (error) {
             console.error("Error fetching game data:", error);
-            gameContainer.innerHTML = '<div class="game-card">Could not retrieve game data. Please try again later.</div>';
+            gameContainer.innerHTML = `<div class="game-card">Could not retrieve game data. The API may be unavailable.</div>`;
         }
     };
 
-    const renderGames = (games, standingsMap) => {
+    const renderGames = (events) => {
         gameContainer.innerHTML = '';
 
-        if (games.length === 0) {
+        if (events.length === 0) {
             gameContainer.innerHTML = '<div class="game-card">No NHL games scheduled for today.</div>';
             return;
         }
 
-        games.forEach(game => {
+        events.forEach(event => {
             const gameCard = document.createElement('div');
             gameCard.className = 'game-card';
 
-            const awayTeamData = game.awayTeam;
-            const homeTeamData = game.homeTeam;
-
-            const awayStandings = standingsMap.get(awayTeamData.abbrev);
-            const homeStandings = standingsMap.get(homeTeamData.abbrev);
+            const competition = event.competitions[0];
+            const homeTeam = competition.competitors.find(c => c.homeAway === 'home').team;
+            const awayTeam = competition.competitors.find(c => c.homeAway === 'away').team;
             
-            const awayWins = awayStandings?.wins || 0;
-            const awayLosses = awayStandings?.losses || 0;
-            const awayOtLosses = awayStandings?.otLosses || 0;
-
-            const homeWins = homeStandings?.wins || 0;
-            const homeLosses = homeStandings?.losses || 0;
-            const homeOtLosses = homeStandings?.otLosses || 0;
-
-            let favoredTeamAnalysis = 'This is expected to be a close match.';
-            if (awayWins > homeWins) {
-                favoredTeamAnalysis = `${awayTeamData.placeName.default} are favored to win based on their season record.`;
-            } else if (homeWins > awayWins) {
-                favoredTeamAnalysis = `${homeTeamData.placeName.default} are favored to win based on their season record.`;
+            const gameTime = new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Extract broadcast info
+            let broadcastInfo = 'N/A';
+            if (competition.broadcasts && competition.broadcasts.length > 0) {
+                broadcastInfo = competition.broadcasts[0].names.join(', ');
             }
 
-            const gameTime = new Date(game.startTimeUTC).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            const broadcastInfo = game.tvBroadcasts.map(b => b.network).join(', ');
+            // Extract odds for analysis
+            let analysis = "No odds available for this match.";
+            if (competition.odds && competition.odds[0]) {
+                analysis = `Favored: ${competition.odds[0].details}`;
+            }
 
             gameCard.innerHTML = `
                 <div class="game-time">${gameTime}</div>
                 <div class="teams">
                     <div class="team">
-                        <img src="${awayTeamData.logo}" alt="${awayTeamData.placeName.default}" class="team-logo">
-                        <span class="team-name">${awayTeamData.placeName.default}</span>
-                        <span class="record">${awayWins}-${awayLosses}-${awayOtLosses}</span>
-                        ${awayWins > homeWins ? '<span class="favored">Favored</span>' : ''}
+                        <img src="${awayTeam.logo}" alt="${awayTeam.name}" class="team-logo">
+                        <span class="team-name">${awayTeam.name}</span>
+                        <span class="record">${(awayTeam.records || [{summary:'0-0-0'}])[0].summary}</span>
+                        ${analysis.includes(awayTeam.abbreviation) ? '<span class="favored">Favored</span>' : ''}
                     </div>
                     <div class="vs">vs</div>
                     <div class="team">
-                        <img src="${homeTeamData.logo}" alt="${homeTeamData.placeName.default}" class="team-logo">
-                        <span class="team-name">${homeTeamData.placeName.default}</span>
-                        <span class="record">${homeWins}-${homeLosses}-${homeOtLosses}</span>
-                         ${homeWins > awayWins ? '<span class="favored">Favored</span>' : ''}
+                        <img src="${homeTeam.logo}" alt="${homeTeam.name}" class="team-logo">
+                        <span class="team-name">${homeTeam.name}</span>
+                        <span class="record">${(homeTeam.records || [{summary:'0-0-0'}])[0].summary}</span>
+                        ${analysis.includes(homeTeam.abbreviation) ? '<span class="favored">Favored</span>' : ''}
                     </div>
                 </div>
                 <div class="analysis">
-                    <strong>Analysis:</strong> ${favoredTeamAnalysis}
+                    <strong>Analysis:</strong> ${analysis}
                 </div>
                 <div class="broadcast-info">
-                    <strong>Broadcast:</strong> ${broadcastInfo || 'N/A'}
+                    <strong>Broadcast:</strong> ${broadcastInfo}
                 </div>
             `;
             gameContainer.appendChild(gameCard);
         });
     };
 
-    fetchData();
+    fetchGames();
 });
