@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameContainer = document.getElementById('game-container');
     const today = new Date().toISOString().split('T')[0];
     
-    const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
+    const proxyUrl = 'https://corsproxy.io/?';
     const scheduleUrl = `${proxyUrl}https://api-web.nhle.com/v1/schedule/${today}`;
     const standingsUrl = `${proxyUrl}https://api-web.nhle.com/v1/standings/now`;
 
