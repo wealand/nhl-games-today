@@ -22,12 +22,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderGames = (events) => {
         gameContainer.innerHTML = '';
 
-        if (events.length === 0) {
+        // Filter to only show games that are actually today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+
+        const todaysGames = events.filter(event => {
+            const gameDate = new Date(event.date);
+            gameDate.setHours(0, 0, 0, 0); // Start of game day
+            return gameDate.getTime() === today.getTime();
+        });
+
+        if (todaysGames.length === 0) {
             gameContainer.innerHTML = '<div class="game-card">No NHL games scheduled for today.</div>';
             return;
         }
 
-        events.forEach(event => {
+        todaysGames.forEach(event => {
             const gameCard = document.createElement('div');
             gameCard.className = 'game-card';
 
